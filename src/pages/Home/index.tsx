@@ -37,6 +37,7 @@ interface Cycle {
 export const Home = () => {
   const [cycle, setCycle] = useState<Cycle[]>([]) // array de ciclos, por isso o []
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState<number>(0) // tanto de segundos já passado apos a inicialização de um newCycle
 
   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
@@ -63,6 +64,15 @@ export const Home = () => {
   }
 
   const activeCycle = cycle.find((cycles) => cycles.id === activeCycleId)
+
+  const totalSeconds = activeCycle ? activeCycle.minutesAmout * 60 : 0
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
+
+  const minutesAmount = Math.floor(currentSeconds / 60)
+  const secondsAmount = currentSeconds % 60
+
+  const minutes = String(minutesAmount).padStart(2, '0') // preeche uma string até um tamanho especifico com algum caracter/ se n tiver 2 caracteres, adiciono um '0' no inico
+  const seconds = String(secondsAmount).padStart(2, '0')
 
   console.log(activeCycle)
 
@@ -102,11 +112,11 @@ export const Home = () => {
             <span>Minutos.</span>
           </FormContainer>
           <CountdownContainer>
-            <span>0</span>
-            <span>0</span>
+            <span>{minutes[0]}</span>
+            <span>{minutes[1]}</span>
             <Separator>:</Separator>
-            <span>0</span>
-            <span>0</span>
+            <span>{seconds[0]}</span>
+            <span>{seconds[1]}</span>
           </CountdownContainer>
 
           <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
