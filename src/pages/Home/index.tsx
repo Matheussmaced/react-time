@@ -54,12 +54,18 @@ export const Home = () => {
   const activeCycle = cycle.find((cycles) => cycles.id === activeCycleId)
 
   useEffect(() => {
+    let interval: number
+
     if (activeCycle) {
-      setInterval(() => {
+      interval = window.setInterval(() => {
         setAmountSecondsPassed(
           differenceInSeconds(new Date(), activeCycle.startDate),
         )
       }, 1000)
+    }
+    // return no useEffect serve para quando alterarmos novamente a variavel, que aconteça algo com o useEffect que está executando
+    return () => {
+      clearInterval(interval)
     }
   }, [activeCycle]) // time
 
@@ -76,6 +82,7 @@ export const Home = () => {
     //        cycle         cycle
     setCycle((state) => [...state, newCycle])
     setActiveCycleId(id)
+    setAmountSecondsPassed(0)
 
     reset() // funciona quando difinimons o task com string vazia no useForm
   }
@@ -89,7 +96,11 @@ export const Home = () => {
   const minutes = String(minutesAmount).padStart(2, '0') // preeche uma string até um tamanho especifico com algum caracter/ se n tiver 2 caracteres, adiciono um '0' no inico
   const seconds = String(secondsAmount).padStart(2, '0')
 
-  console.log(activeCycle)
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `${minutes}:${seconds}`
+    }
+  }, [minutes, seconds])
 
   const task = watch('task')
   const isSubmitDisabled = !task
