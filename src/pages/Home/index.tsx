@@ -38,6 +38,7 @@ interface Cycle {
   minutesAmout: number
   startDate: Date
   interruptedDate?: Date
+  finishedDate?: Date
 }
 
 export const Home = () => {
@@ -55,21 +56,49 @@ export const Home = () => {
 
   const activeCycle = cycle.find((cycles) => cycles.id === activeCycleId)
 
+  const totalSeconds = activeCycle ? activeCycle.minutesAmout * 60 : 0
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
+
+  const minutesAmount = Math.floor(currentSeconds / 60)
+  const secondsAmount = currentSeconds % 60
+
+  const minutes = String(minutesAmount).padStart(2, '0') // preeche uma string até um tamanho especifico com algum caracter/ se n tiver 2 caracteres, adiciono um '0' no inico
+  const seconds = String(secondsAmount).padStart(2, '0')
+
   useEffect(() => {
     let interval: number
 
     if (activeCycle) {
       interval = window.setInterval(() => {
-        setAmountSecondsPassed(
-          differenceInSeconds(new Date(), activeCycle.startDate),
+        const secondsDifference = differenceInSeconds(
+          new Date(),
+          activeCycle.startDate,
         )
+
+        if (secondsDifference >= totalSeconds) {
+          setCycle((state) =>
+            state.map((cycles) => {
+              if (cycles.id === activeCycleId) {
+                return { ...cycles, finishedDate: new Date() }
+              } else {
+                return cycles
+              }
+            }),
+          )
+
+          setAmountSecondsPassed(totalSeconds)
+
+          clearInterval(interval)
+        } else {
+          setAmountSecondsPassed(secondsDifference)
+        }
       }, 1000)
     }
     // return no useEffect serve para quando alterarmos novamente a variavel, que aconteça algo com o useEffect que está executando
     return () => {
       clearInterval(interval)
     }
-  }, [activeCycle]) // time
+  }, [activeCycle, totalSeconds, activeCycleId]) // time
 
   const handleCreateNewCycle = (data: NewCycleFormData) => {
     const id = String(new Date().getTime())
@@ -90,8 +119,8 @@ export const Home = () => {
   }
 
   function handleInterruptCycle() {
-    setCycle(
-      cycle.map((cycles) => {
+    setCycle((state) =>
+      state.map((cycles) => {
         if (cycles.id === activeCycleId) {
           return { ...cycles, interruptedDate: new Date() }
         } else {
@@ -102,15 +131,6 @@ export const Home = () => {
 
     setActiveCycleId(null)
   }
-
-  const totalSeconds = activeCycle ? activeCycle.minutesAmout * 60 : 0
-  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
-
-  const minutesAmount = Math.floor(currentSeconds / 60)
-  const secondsAmount = currentSeconds % 60
-
-  const minutes = String(minutesAmount).padStart(2, '0') // preeche uma string até um tamanho especifico com algum caracter/ se n tiver 2 caracteres, adiciono um '0' no inico
-  const seconds = String(secondsAmount).padStart(2, '0')
 
   useEffect(() => {
     if (activeCycle) {
